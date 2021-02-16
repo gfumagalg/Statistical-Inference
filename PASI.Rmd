@@ -1,0 +1,178 @@
+---
+title: "Exponential distribution "
+author: "Gerardo Fumagal"
+date: "2/12/2021"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{mathtools}
+   - \newcommand{\en}[1]{{\selectlanguage{english}#1}}
+   - \newcommand{\gr}[1]{{\selectlanguage{greek}#1}}
+mainfont: GFS Didot
+output:
+  html_document:
+    df_print: paged
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exponential distribution and CLT
+
+The exponential distribution is the probability distribution of the time between
+events in a Poisson point process in which events occur constantly and independently at
+a constant average rate.
+
+The PDF of an exponential distribution is:
+
+\begin{equation}
+f(x; \alpha) = 
+\begin{cases}
+\lambda e^\lambda & x \geq 0\\
+0                 & x \lt 0.\\
+\end{cases}
+\end{equation}
+
+Where $\lambda$ is the key parameter, the mean of the distribution and standard 
+deviation are defined as follows:
+
+\begin{equation}
+\mu = \frac{\textrm{1}}{\lambda} ; \sigma = \frac{\textrm{1}}{\lambda}
+\end{equation}
+
+
+equal to both the mean and the standard deviation of the exponential
+distribution.
+
+In this paper, we will compare the exponential distribution with the central
+limit theorem, by simulating the exponential distribution and illustrate its
+properties.
+
+CLT establishes that the distribution of averages of iid variables normalized,
+becomes that of a standard normal, as the sample size increases.
+
+If $X_{1} , X_{2} ... X_{i}$ are a collection of iid random variables with mean
+$\mu$ and variance $\sigma_{2}$; also, let $\bar{X_{n}}$ be their sample average
+then:
+
+\begin{equation}
+\frac{\bar{X_{n}} - \mu}{\sigma / \sqrt{n}}
+\end{equation}
+
+has a distribution of a that of a standard normal for large $n$.
+
+It can be express as the following form:
+
+\begin{equation}
+\frac{\textrm{Estimate - Mean of estimate}}{\textrm{Std. error of estimate}}
+\end{equation}
+
+## Simulation
+
+First, let's generate data for 1000 simulations of exponential distribution with
+a sample size of 40, for the porpoise of this exercise will take $\lambda$ = 0.2.
+
+We need to generate the exponential distribution sample, the means and variance,
+and to normalize them according the the equation by CLT. The following code does
+generate these simulation, calculate means and normalized them:
+
+```{r simulate data}
+lambda <- 0.2
+expn <- 100
+n <- 1000
+meanr <- NULL
+meanavg <- NULL
+var_exp <- NULL
+exp_tonormal <- NULL
+var_avg <- NULL
+for (i in 1:n) {
+  meanr = c(meanr, mean(rexp(expn, lambda)))
+  meanavg = c(meanavg, mean(meanr))
+  var_exp = c(var_exp, var(rexp(expn, lambda)))
+  var_avg = c(var_avg, mean(var_exp))
+  SE <- sqrt(var(rexp(expn, lambda))/expn)
+  exp_tonormal = c(exp_tonormal,(mean(rexp(expn, lambda))-(1/lambda))/SE)
+}
+
+```
+
+## Comparing Exponential Distribution with CLT
+
+1. Sample mean and theoretical mean
+
+We discuss that exponential distribution has a mean of equal to 1/$\lambda$, in
+our case this value is 5, let's plot how the simulation behaves as the mean of
+average sample towards the expected value.
+
+```{r sample mean and theoretical mean, echo=FALSE}
+mean_theo <- 1/lambda
+plot(meanavg, type = "l", main = "Exponential Distribution, sample mean vs 
+     theoretical mean", ylab = "cumulative means" , xlab = "iteration")
+abline(h=mean_theo, lwd = 2, col = "red")
+```
+
+The plot shows how the simulation converges to the expected value, our sample 
+size of 40 seems to be large enough to drive the result to the expected value.
+
+2. Compare how variable the sample is by simulating the variance vs theoretical
+variance value.
+
+Once again, the standard deviation of the exponential distribution is 1/$\lambda$
+which it is also 5, which makes its variance ($S$ = $\sigma^2$) equal to 25.
+
+Let's plot the results from our simulation and note how they behaves towards the 
+theoretical variance value.
+
+```{r, sample vairance vs theoretical variance}
+var_theo <- (1/lambda)^2
+plot(var_avg, type = "l", main = "Exponential Distribution, sample variance vs 
+     theoretical variance", ylab = "cumulative variance" , xlab = "iteration")
+abline(h=var_theo, lwd = 2, col = "red")
+
+```
+
+The simulation converges to the function's variance, the sample size is large
+enough to show the variance value is 25.
+
+3. Is the distribution approximately normal?
+
+We have applied CLT formula on the averages of the samples and store in a 
+variable called exp_tonormal, let's plot the results and compare to a normal 
+distribution:
+
+```{r, plot exponential distribution vs normal}
+h <- hist(exp_tonormal, breaks=30, col="red", xlab="x", 
+   main="Exponential Simulation vs CLT sample size = 40") 
+xfit <- seq(min(exp_tonormal), max(exp_tonormal), length = 40)
+yfit<-dnorm(xfit,mean=mean(exp_tonormal),sd=sd(exp_tonormal))
+yfit <- yfit*diff(h$mids[1:2])*length(exp_tonormal)
+lines(xfit, yfit, col = "blue", lwd = 2)
+```
+
+
+Now we can tell that the exponential distribution is approximately a normal with 
+a sample size of 40, although, it may be more clear if we increase the size
+just to see this effect, let's try a sample size of 1000, and plot the results.
+
+```{r sample size 1000}
+expn <- 1000
+n <- 1000
+exp_tonormal <- NULL
+for (i in 1:n) {
+  SE <- sqrt(var(rexp(expn, lambda))/expn)
+  exp_tonormal = c(exp_tonormal,(mean(rexp(expn, lambda))-(1/lambda))/SE)
+}
+```
+
+```{r, plot exponential distribution vs normal sample size 200, echo=FALSE}
+h <- hist(exp_tonormal, breaks=30, col="red", xlab="x", 
+   main="Exponential Simulation vs CLT sample size = 1000") 
+xfit <- seq(min(exp_tonormal), max(exp_tonormal), length = 40)
+yfit<-dnorm(xfit,mean=mean(exp_tonormal),sd=sd(exp_tonormal))
+yfit <- yfit*diff(h$mids[1:2])*length(exp_tonormal)
+lines(xfit, yfit, col = "blue", lwd = 2)
+```
+
+Now with a sample size of 200, the function fits better to a normal distribution
+it is expected to be seamless as we increase the sample size

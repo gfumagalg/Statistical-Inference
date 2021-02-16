@@ -1,0 +1,114 @@
+---
+title: "PASI2"
+author: "Gerardo Fumagal"
+date: "2/15/2021"
+output: 
+  html_document:
+    df_print: paged
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Analysis of ToothGrowth data set
+
+The ToothGrowth data set in r, is a collection of observations on guinea pigs
+tooth growth due to the application of Vitamin C dosis. In this paper, we will
+analyze the content of this data set, by getting information on the number of
+observations, the variables captured and by doing basis statistical analysis of
+the data with preliminary conclusions.
+
+```{r Reading and storing data}
+data = ToothGrowth
+```
+
+###Exploratory Data Analisys
+
+To get an understanding of the ToothGrowth set, we will explore the data as per
+the following steps:
+
+1. Number of observations captured.
+2. Number, name and type of variables within the data set.
+3. Existing levels of variables, and unique values for each.
+
+Let's explore the data set:
+
+```{r Exploratory Data Analysis}
+dim(data)
+str(data)
+```
+
+ToothGrowth data set is a collection of 60 observations containing the variables
+tooth length, supplementary type and dose. Length is a numeric variable, 
+supplementary type is a factor variable with 2 levels and dose is another
+numeric variable.
+
+Now we get more information by making a summary on the database and extracting
+the unique values from dose variable:
+
+```{r Exploratory Data Analysis 2}
+summary(data)
+unique(data$dose)
+```
+
+We noticed there were 2 groups for testing each of 30 pigs identified by the 
+supplementary type variable as VC and OC, they received either one of 3 
+different doses level: 0.5, 1.0 or 2.0 units.
+
+## Statistical Analysis
+
+The main goal in this section is to find out relationships between the length of
+tooth with dose and supplementary type. 
+
+Let's start with supplementary type, a variable with 2 levels: VC or OJ. We need
+to, find out the distribution for each level
+
+```{r Boxplot Supplementary type vs Tooth length}
+plot(x = data$supp, y = data$len, xlab = "Supplementary Type", ylab = "Tooth length")
+```
+
+By looking at the graph, there is a perception of OJ median is higher than the 
+one for VC, so let this be our first hypothesis.
+
+The null hypothesis is the difference between the expected value of the tooth 
+length with supplementary type OJ is equal to the expected value with type VC,
+the alternative is, the expected value with supplementary type OJ is higher than
+with type VC:
+
+\begin{equation}
+H_{0} \textrm{ | }  \mu_{OJ} = \mu_{VC} \\
+H_{a} \textrm{ | }  \mu_{OJ} > \mu_{VC}
+\end{equation}
+
+To test our hypothesis we consider that, the groups are the same size and 
+independent, a t-test is to be used with an average of the variances as the pool
+variance.
+
+```{r t-test for Supplementary type vs Tooth length}
+x_oj <- with(data, len[supp == "OJ"])
+x_vc <- with(data, len[supp == "VC"])
+t.test(x_oj - x_vc, paired = FALSE, var.equal = TRUE)
+```
+
+Based on the output from the t-test, we reject the null hypothesis as our 95%
+confidence interval (1.408659 5.991341), does not include 0, and as the interval
+is clearly on the positive side, we can conclude the supplementary type OJ has
+a positive effect on tooth length.
+
+## Analysis of dose and supplementary type effects on tooth length
+
+Let's visualize the data by dose and supplementary type at the same time, in 
+order to recognize some preliminary patterns.
+
+```{r Plot Tooth length by dose and supplementary type}
+plot(data$dose, data$len, col = data$supp, ylab = "Tooth length", xlab = "dose")
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
